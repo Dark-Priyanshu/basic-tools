@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FreeTools - Free Online Tools
 
-## Getting Started
+A modern, production-ready web application featuring 5 essential online tools
+that work entirely in your browser. No uploads, no registration, completely
+free.
 
-First, run the development server:
+## 🚀 Features
+
+- **Image Format Converter** - Convert between JPEG, PNG, WEBP, BMP, and ICO
+- **Crop & Resize Tool** - Resize images with preset aspect ratios or custom
+  dimensions
+- **Rotate & Flip Tool** - Rotate at any angle and flip images
+- **QR Code Generator** - Create QR codes for URLs, WiFi, phone, email,
+  WhatsApp, and UPI
+- **Password Generator** - Generate strong, secure passwords with customization
+
+## 🛠️ Tech Stack
+
+- **Next.js 16.1.4** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Client-Side Processing** - All operations happen in the browser
+
+## 📦 Installation
 
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd free-tools-app
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎨 Features in Detail
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Image Tools
 
-## Learn More
+- **Batch Processing** - Upload and process multiple images at once
+- **Drag & Drop** - Easy file upload with drag and drop support
+- **Quality Control** - Adjust output quality for JPEG and WEBP
+- **Live Preview** - See results before downloading
+- **ZIP Downloads** - Download all processed images as a ZIP file
 
-To learn more about Next.js, take a look at the following resources:
+### QR Code Generator
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Multiple Types** - URL, WiFi, Phone, SMS, Email, WhatsApp, UPI
+- **Customization** - Colors, margins, and logo embedding
+- **Multiple Formats** - Download as PNG or SVG
+- **Live Preview** - See changes in real-time
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Password Generator
 
-## Deploy on Vercel
+- **Customizable Length** - 8 to 64 characters
+- **Character Options** - Uppercase, lowercase, numbers, symbols
+- **Strength Meter** - Real-time password strength indicator
+- **Exclude Similar** - Option to exclude confusing characters (O/0, l/1)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔒 Privacy & Security
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **100% Client-Side** - All processing happens in your browser
+- **No Data Collection** - We don't collect, store, or transmit any data
+- **No Tracking** - No cookies, analytics, or tracking
+- **No Registration** - Use all tools without creating an account
+
+## 📱 Responsive Design
+
+The application is fully responsive and works seamlessly on:
+
+- Desktop computers
+- Tablets
+- Mobile phones
+
+## 🌓 Theme Support
+
+Automatically adapts to your system's dark/light mode preference for optimal
+viewing comfort.
+
+## 🏗️ Project Structure
+
+```
+free-tools-app/
+├── app/
+│   ├── components/      # Reusable components
+│   ├── tools/          # Individual tool pages
+│   ├── about/          # About page
+│   ├── privacy/        # Privacy policy
+│   ├── contact/        # Contact page
+│   └── globals.css     # Global styles
+├── public/             # Static assets
+└── package.json        # Dependencies
+```
+
+## 🚀 Deployment
+
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+The application can be deployed to any platform that supports Next.js:
+
+- Vercel (recommended)
+- Netlify
+- AWS
+- Google Cloud
+- Self-hosted
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+## 📧 Contact
+
+For questions or support, please visit the Contact page in the application.
+
+---
+
+Built with ❤️ using Next.js and React
