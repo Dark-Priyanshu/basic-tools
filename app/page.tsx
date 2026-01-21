@@ -43,6 +43,56 @@ export default function Home() {
       icon: '🔒',
       href: '/tools/steganography',
       bgImage: '/assets/steganography-bg.png'
+    },
+    // Developer Tools
+    {
+      title: 'JSON Formatter',
+      description: 'Format, minify, and validate JSON data with error highlighting.',
+      icon: '📝',
+      href: '/dev/json-formatter',
+      bgImage: '/assets/json-formattor-bg.png'
+    },
+    {
+      title: 'Base64 Converter',
+      description: 'Encode and decode Base64 strings with UTF-8 support.',
+      icon: '🔤',
+      href: '/dev/base64',
+      bgImage: '/assets/base64-convertor-bg.png'
+    },
+    {
+      title: 'Hash Generator',
+      description: 'Generate MD5, SHA-1, SHA-256, and SHA-512 hashes instantly.',
+      icon: '#️⃣',
+      href: '/dev/hash-generator',
+      bgImage: '/assets/hash-generator-bg.png'
+    },
+    {
+      title: 'JWT Decoder',
+      description: 'Decode and inspect JSON Web Tokens (Header & Payload).',
+      icon: '🔑',
+      href: '/dev/jwt-decoder',
+      bgImage: '/assets/jwt-decoder-bg.png'
+    },
+    {
+      title: 'URL Encoder',
+      description: 'Encode and decode URL-encoded strings safely.',
+      icon: '🌐',
+      href: '/dev/url-encoder',
+      bgImage: '/assets/url-encoder-bg.png'
+    },
+    {
+      title: 'Color Converter',
+      description: 'Convert between HEX, RGB, and HSL with live preview.',
+      icon: '🎨',
+      href: '/dev/color-converter',
+      bgImage: '/assets/color-converter-bg.png'
+    },
+    {
+      title: 'UUID Generator',
+      description: 'Generate random UUID v4 identifiers in bulk.',
+      icon: '🆔',
+      href: '/dev/uuid-generator',
+      bgImage: '/assets/uuid-generator-bg.png'
     }
   ];
 

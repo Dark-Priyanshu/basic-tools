@@ -10,7 +10,7 @@ interface ToolCardProps {
 
 export default function ToolCard({ title, description, icon, href, bgImage }: ToolCardProps) {
   return (
-    <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }} target="_self">
       <div className="card" style={{
         height: '100%',
         display: 'flex',

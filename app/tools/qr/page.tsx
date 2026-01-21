@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import BackButton from '../../components/BackButton';
 
 type QRType = 'url' | 'wifi' | 'phone' | 'sms' | 'email' | 'whatsapp' | 'upi';
-type QRStyle = 'squares' | 'dots' | 'rounded';
+type QRStyle = 'squares' | 'dots' | 'rounded' | 'extra-rounded' | 'classy';
 
 export default function QRGeneratorPage() {
   const [qrType, setQrType] = useState<QRType>('url');
@@ -85,6 +85,7 @@ export default function QRGeneratorPage() {
       // Create raw QR data
       const qr = await QRCode.create(data, {
         errorCorrectionLevel: 'H',
+        // @ts-ignore - margin is valid but missing in some type definitions
         margin: 0 // We handle margin manually
       });
       
