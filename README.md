@@ -29,13 +29,24 @@ registration, completely free and privacy-focused.
 - **URL Encoder/Decoder** - Encode and decode URLs
 - **UUID Generator** - Generate unique identifiers (v1, v4)
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Optimization
 
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Client-Side Processing** - All operations happen in the browser
-- **Modern UI/UX** - Beautiful, responsive design with dark mode support
+- **Next.js 16** - React framework with App Router & TurboPack
+- **React 19** - Latest React features including Server Components & Actions
+- **TypeScript** - Full type-safety across the application
+- **Responsive Design** - Fluid layouts for Mobile, Tablet, and Desktop
+- **Performance Optimized**:
+  - **Zero-Bundle Home**: Tool code is loaded on-demand only
+  - **Lazy Loading**: Heavy libraries (`jszip`, `qrcode`, etc.) load only when
+    used
+  - **Client Components**: Client-side logic separated from server-rendered
+    shell
+- **Key Libraries**:
+  - `jszip` - Client-side ZIP creation
+  - `file-saver` - File downloads
+  - `react-image-crop` - Advanced image cropping
+  - `qrcode` - fast QR generation
+  - Native `Crypto` API - Secure cryptographic operations in browser
 
 ## 📦 Installation
 
@@ -44,7 +55,7 @@ registration, completely free and privacy-focused.
 git clone https://github.com/Dark-Priyanshu/basic-tools.git
 cd free-tools-app
 
-# Install dependencies
+# Install dependencies (Node.js 18+ recommended)
 npm install
 
 # Run development server
@@ -62,7 +73,8 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 - **Quality Control** - Adjust output quality for JPEG and WEBP
 - **Live Preview** - See results before downloading
 - **ZIP Downloads** - Download all processed images as a ZIP file
-- **Steganography** - Hide and extract secret messages from images
+- **Steganography** - Hide and extract secret messages from images using AES-GCM
+  encryption
 
 ### Developer Tools
 
@@ -149,30 +161,14 @@ viewing comfort.
 ```
 free-tools-app/
 ├── app/
-│   ├── components/      # Reusable components
-│   ├── tools/          # Image tools
-│   │   ├── convert/    # Image format converter
-│   │   ├── crop/       # Crop & resize
-│   │   ├── rotate/     # Rotate & flip
-│   │   ├── editor/     # Image editor
-│   │   ├── steganography/ # Hide messages in images
-│   │   ├── qr/         # QR code generator
-│   │   ├── password/   # Password generator
-│   │   └── shorten/    # URL shortener
-│   ├── dev/            # Developer tools
-│   │   ├── base64/     # Base64 encoder/decoder
-│   │   ├── color-converter/ # Color converter
-│   │   ├── hash-generator/  # Hash generator
-│   │   ├── json-formatter/  # JSON formatter
-│   │   ├── jwt-decoder/     # JWT decoder
-│   │   ├── url-encoder/     # URL encoder/decoder
-│   │   └── uuid-generator/  # UUID generator
+│   ├── components/      # Reusable components (Header, ToolCard, etc.)
+│   ├── tools/          # Image & Utility tools components and pages
+│   ├── dev/            # Developer tools components and pages
 │   ├── about/          # About page
 │   ├── privacy/        # Privacy policy
 │   ├── contact/        # Contact page
-│   └── globals.css     # Global styles
+│   └── globals.css     # Global styles & responsive utilities
 ├── public/             # Static assets
-│   └── assets/         # Tool background images
 └── package.json        # Dependencies
 ```
 
@@ -186,19 +182,11 @@ npm run build
 npm start
 ```
 
-The application can be deployed to any platform that supports Next.js:
-
-- Vercel (recommended)
-- Netlify
-- AWS
-- Google Cloud
-- Self-hosted
-
 ## ⚙️ Configuration
 
 The project includes optimized Next.js configuration:
 
-- **Dev Indicators Disabled** - Clean development experience
+- **Dynamic Imports** - Tools are loaded lazily to improve initial load time
 - **TypeScript Support** - Full type safety
 - **Optimized Build** - Fast production builds
 

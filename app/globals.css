@@ -42,6 +42,23 @@ body {
   padding: 0 1rem;
 }
 
+/* Fluid spacing for smaller screens */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 .btn {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -79,6 +96,12 @@ body {
   transition: all 0.2s;
 }
 
+@media (max-width: 640px) {
+  .card {
+    padding: 1rem;
+  }
+}
+
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -91,6 +114,12 @@ body {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+@media (max-width: 640px) {
+  .upload-zone {
+    padding: 2rem 1rem;
+  }
 }
 
 .upload-zone:hover,
@@ -147,6 +176,7 @@ input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="tel"],
+input[type="url"],
 textarea,
 select {
   width: 100%;
@@ -162,6 +192,7 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
+input[type="url"]:focus,
 textarea:focus,
 select:focus {
   outline: none;
@@ -178,4 +209,35 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+}
+
+/* Responsive Grid Utility */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 480px) {
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive Control Group Utility */
+.control-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.control-group > * {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .control-group {
+    flex-direction: column;
+  }
 }

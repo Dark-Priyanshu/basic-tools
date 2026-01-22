@@ -10,7 +10,7 @@ interface ToolCardProps {
 
 export default function ToolCard({ title, description, icon, href, bgImage }: ToolCardProps) {
   return (
-    <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }} target="_self">
+    <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }} target="_self" prefetch={false}>
       <div className="card" style={{
         height: '100%',
         display: 'flex',
@@ -38,7 +38,7 @@ export default function ToolCard({ title, description, icon, href, bgImage }: To
         
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: '3rem' }}>{icon}</div>
+          <div style={{ fontSize: 'clamp(2.5rem, 5vw, 3rem)' }}>{icon}</div>
           <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>{title}</h3>
           <p style={{ opacity: 0.8, fontSize: '0.95rem', lineHeight: '1.5' }}>
             {description}
