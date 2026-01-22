@@ -82,6 +82,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 - **Multiple Types** - URL, WiFi, Phone, SMS, Email, WhatsApp, UPI
 - **Customization** - Colors, margins, and logo embedding
+- **Smart Favicons** - Automatically fetch and embed website logos
 - **Multiple Formats** - Download as PNG or SVG
 - **Live Preview** - See changes in real-time
 
