@@ -93,6 +93,13 @@ export default function Home() {
       icon: '🆔',
       href: '/dev/uuid-generator',
       bgImage: '/assets/uuid-generator-bg.webp'
+    },
+    {
+      title: 'Social Tools',
+      description: 'Download media from YouTube, Facebook, Instagram, and Spotify.',
+      icon: '📥',
+      href: '/tools/social',
+      bgImage: '/assets/image-editor-bg.webp'
     }
   ];
 

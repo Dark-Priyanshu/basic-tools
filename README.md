@@ -15,6 +15,11 @@ registration, completely free and privacy-focused.
 - **Image Editor** - Advanced image editing capabilities
 - **Steganography** - Hide secret messages in images
 
+### 📥 Social Tools
+
+- **Social Media Downloader** - Download videos/audio from Instagram, YouTube,
+  Facebook, Spotify
+
 ### 🔧 Developer Tools
 
 - **QR Code Generator** - Create QR codes for URLs, WiFi, phone, email,
@@ -58,6 +63,13 @@ cd free-tools-app
 # Install dependencies (Node.js 18+ recommended)
 npm install
 
+# Setup Python Service (Required for Social Tools)
+cd python_service
+python -m venv .venv
+# Activate venv: .venv\Scripts\activate (Windows) or source .venv/bin/activate (Mac/Linux)
+pip install -r requirements.txt
+cd ..
+
 # Run development server
 npm run dev
 ```
@@ -75,6 +87,18 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 - **ZIP Downloads** - Download all processed images as a ZIP file
 - **Steganography** - Hide and extract secret messages from images using AES-GCM
   encryption
+
+### Social Tools
+
+#### Social Media Downloader
+
+- **Multi-Platform Support** - Instagram, YouTube, Facebook, Spotify
+- **Quality Options** - Choose video quality (1080p, 720p) or audio bitrate
+  (320k, 128k)
+- **Local Processing** - A companion Python service handles downloads locally on
+  your machine
+- **Privacy Focused** - No third-party servers; files stream directly to your
+  browser
 
 ### Developer Tools
 

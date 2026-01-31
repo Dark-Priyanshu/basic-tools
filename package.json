@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"npm:dev:next\" \"npm:dev:python\"",
+    "dev:next": "next dev",
+    "dev:python": "python python_service/main.py",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -29,6 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-image-crop": "^8.1.6",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
     "tailwindcss": "^4",
