@@ -81,10 +81,13 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 #### QR Code Generator
 
 - **Multiple Types** - URL, WiFi, Phone, SMS, Email, WhatsApp, UPI
-- **Customization** - Colors, margins, and logo embedding
-- **Smart Favicons** - Automatically fetch and embed website logos
+- **Advanced Styling** - Custom shapes for Dots, Markers, and Centers (Square,
+  Rounded, Dots, Classy)
+- **Customization** - Colors, margins, automatic error correction
+- **Logo Embedding** - Embed custom logos or automatically fetch website
+  favicons
 - **Multiple Formats** - Download as PNG or SVG
-- **Live Preview** - See changes in real-time
+- **Live Preview** - Real-time preview with instant updates
 
 #### Password Generator
 
