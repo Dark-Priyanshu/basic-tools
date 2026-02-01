@@ -28,8 +28,8 @@ def remove_file(path: str):
                 print(f"ERROR: Failed to delete {path} after retries: {e}")
 
 # Spotify Credentials
-SPOTIPY_CLIENT_ID = "dbd2a664476f440aaffd0d6940580c1a"
-SPOTIPY_CLIENT_SECRET = "ca14d283a1b04e3296064eb71776c369"
+SPOTIPY_CLIENT_ID = ""
+SPOTIPY_CLIENT_SECRET = ""
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
