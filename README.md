@@ -68,6 +68,12 @@ cd python_service
 python -m venv .venv
 # Activate venv: .venv\Scripts\activate (Windows) or source .venv/bin/activate (Mac/Linux)
 pip install -r requirements.txt
+python -m pip install instaloader python-dotenv # Install additional dependencies
+
+# Create .env file for Spotify Credentials
+echo "SPOTIPY_CLIENT_ID=your_id_here" > .env
+echo "SPOTIPY_CLIENT_SECRET=your_secret_here" >> .env
+
 cd ..
 
 # Run development server
@@ -92,9 +98,15 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 #### Social Media Downloader
 
-- **Multi-Platform Support** - Instagram, YouTube, Facebook, Spotify
-- **Quality Options** - Choose video quality (1080p, 720p) or audio bitrate
-  (320k, 128k)
+#### Social Media Downloader
+
+- **Multi-Platform Support** - Instagram (Videos/Reels/Photos), YouTube,
+  Facebook, Spotify
+- **Queue System** - Queue multiple downloads and process them sequentially
+- **Format Options** - Video (MP4), Audio (MP3), and Photos (JPG for Instagram)
+- **Quality Control** - 1080p+, High Bitrate Audio
+- **Zero Temp Files** - Advanced streaming architecture ensuring NO temporary
+  files are created on the server/disk
 - **Local Processing** - A companion Python service handles downloads locally on
   your machine
 - **Privacy Focused** - No third-party servers; files stream directly to your
