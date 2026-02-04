@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:next\" \"npm:dev:python\"",
     "dev:next": "next dev -H 0.0.0.0",
-    "dev:python": ".venv\\Scripts\\python python_service/main.py",
+    "dev:python": ".venv\\Scripts\\python check_requirements.py && .venv\\Scripts\\python python_service/main.py",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

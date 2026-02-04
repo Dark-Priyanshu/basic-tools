@@ -77,6 +77,8 @@ echo "SPOTIPY_CLIENT_SECRET=your_secret_here" >> .env
 cd ..
 
 # Run development server
+# NOTE: This will automatically check for Python dependencies 
+# and install them if missing before starting the app.
 npm run dev
 ```
 
