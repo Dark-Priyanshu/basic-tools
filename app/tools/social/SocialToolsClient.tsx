@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import BackButton from '@/app/components/BackButton';
+import CarouselSelectionModal from './CarouselSelectionModal';
+import DownloadQueueList from './DownloadQueueList';
 
 type Platform = 'youtube' | 'facebook' | 'instagram' | 'spotify';
 
@@ -14,6 +16,8 @@ type QueueItem = {
   status: 'pending' | 'downloading' | 'completed' | 'error';
   filename?: string;
   error?: string;
+  carouselIndex?: number;
+  directDownloadUrl?: string; // Opt-in for direct proxy download
 };
 
 export default function SocialToolsClient() {
@@ -22,15 +26,30 @@ export default function SocialToolsClient() {
   const [format, setFormat] = useState('video'); // video, audio
   const [quality, setQuality] = useState('best');
   
-  // Note: 'loading' here generally refers to the initial "add to queue" validation if we had any, 
-  // but now we just rely on queue status. We'll keep it for UI disabling if needed.
+  // Note: 'loading' here generally refers to the initial "add to queue" validation.
   const [loading, setLoading] = useState(false); 
   const [error, setError] = useState('');
-  const [result, setResult] = useState<any>(null);
+  // const [result, setResult] = useState<any>(null); // Unused variable removed
   
   // Queue State
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+
+  // Carousel Selection State
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  // Re-use the interface we defined in CarouselSelectionModal (or defining here to avoid circular dep if we exported it)
+  // Ideally, types should be in a shared file, but for now defining locally or importing if exported.
+  // Let's define it here to be safe and consistent.
+  type SelectionItem = {
+      index: number;
+      is_video: boolean;
+      url: string;
+      download_url?: string;
+      type: string;
+  };
+  
+  const [selectionItems, setSelectionItems] = useState<SelectionItem[]>([]);
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
   // Reset/Configure defaults when platform changes
   const handlePlatformChange = (newPlatform: Platform) => {
@@ -42,8 +61,8 @@ export default function SocialToolsClient() {
       setFormat('video');
       setQuality('best');
     }
-    setResult(null);
     setError('');
+    setShowSelectionModal(false);
   };
 
   const platforms: { id: Platform; label: string; icon: string }[] = [
@@ -53,23 +72,79 @@ export default function SocialToolsClient() {
     { id: 'spotify', label: 'Spotify', icon: '🎵' },
   ];
 
-  const downloadSingleItem = async (item: { url: string; platform: Platform; format: string; quality: string }) => {
-     const response = await fetch(`/api/py/download/${item.platform}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: item.url,
-          format_type: item.format,
-          quality: item.quality,
-        }),
-      });
+  const downloadSingleItem = async (item: { url: string; platform: Platform; format: string; quality: string; carouselIndex?: number; directDownloadUrl?: string }) => {
+     let response;
+     let filename = "";
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({ detail: 'Download failed' }));
-        throw new Error(errData.detail || 'Download failed');
-      }
+     // 1. Smart Download Strategy
+     if (item.directDownloadUrl) {
+         let ext = item.format === 'photo' ? 'jpg' : 'mp4';
+         filename = `Instagram_${item.carouselIndex ?? 0}_${Date.now()}.${ext}`;
+
+         // Strategy A: PHOTOS - Blob (Instant Save from Cache)
+         if (item.format === 'photo') {
+             // We use the same proxy URL as the preview image. Browser should cache hit this.
+             const proxyImageUrl = `/api/py/proxy_image?url=${encodeURIComponent(item.directDownloadUrl)}`;
+             
+             try {
+                 const res = await fetch(proxyImageUrl);
+                 if (!res.ok) throw new Error('Failed to fetch image');
+                 const blob = await res.blob();
+                 
+                 const downloadUrl = window.URL.createObjectURL(blob);
+                 const a = document.createElement('a');
+                 a.href = downloadUrl;
+                 a.download = filename;
+                 document.body.appendChild(a);
+                 a.click();
+                 document.body.removeChild(a);
+                 window.URL.revokeObjectURL(downloadUrl);
+                 return filename;
+             } catch (e) {
+                 console.error("Blob save failed, falling back to proxy download", e);
+                 // Fallback to Strategy B if blob fails
+             }
+         }
+
+         // Strategy B: VIDEOS (or Photo Fallback) - Direct Stream (Browser Native)
+         const proxyUrl = `/api/py/proxy_download?url=${encodeURIComponent(item.directDownloadUrl)}&filename=${encodeURIComponent(filename)}`;
+         const a = document.createElement('a');
+         a.href = proxyUrl;
+         a.style.display = 'none';
+         document.body.appendChild(a);
+         a.click();
+         document.body.removeChild(a);
+
+         // Artificial delay to allow browser to start download before we mark "Completed" in UI
+         await new Promise(r => setTimeout(r, 2000)); 
+         return filename;
+
+     } else {
+         // 2. Fallback / Standard Download (Expensive API Call)
+         response = await fetch(`/api/py/download/${item.platform}`, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+            url: item.url,
+            format_type: item.format,
+            quality: item.quality,
+            carousel_index: item.carouselIndex ?? -1
+            }),
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({ detail: 'Download failed' }));
+            throw new Error(errData.detail || 'Download failed');
+        }
+
+        // Check Content-Type for JSON (Carousel Manifest)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return await response.json(); 
+        }
+     }
 
       const blob = await response.blob();
       const disposition = response.headers.get('content-disposition');
@@ -78,7 +153,7 @@ export default function SocialToolsClient() {
       if (item.format === 'audio') ext = 'mp3';
       if (item.format === 'photo') ext = 'jpg';
       
-      let filename = `download.${ext}`;
+      if (!filename) filename = `download.${ext}`;
       
       if (disposition) {
           if (disposition.includes("filename*=")) {
@@ -112,7 +187,7 @@ export default function SocialToolsClient() {
       return filename;
   };
 
-  const handleSmartDownload = () => {
+  const handleSmartDownload = async () => {
     setError('');
     // Basic validation
     if (!url.trim()) {
@@ -120,6 +195,51 @@ export default function SocialToolsClient() {
       return;
     }
 
+    // Special Logic for Instagram: Check for Carousel first
+    if (platform === 'instagram') {
+        // Probe
+        setLoading(true); // Show local loading on button
+        try {
+            const res = await fetch(`/api/py/download/instagram`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ url, format_type: format, quality, carousel_index: -1 })
+            });
+
+            if (!res.ok) throw new Error('Failed to fetch post info');
+            
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await res.json();
+                if (data.type === 'carousel') {
+                    setSelectionItems(data.items);
+                    setSelectedIndices(new Set());
+                    setShowSelectionModal(true);
+                    setLoading(false);
+                    return; // Stop here, wait for selection
+                }
+            }
+            // Fallback for single stream response if API changed? 
+            // Current API ALWAYS returns JSON manifest for Instagram Discovery (index -1)
+            // So we should expect JSON. If Blob, it means API didn't follow plan.
+            
+            // Just in case:
+            const blob = await res.blob();
+            // ... (Fallback handling, likely won't hit if API is correct)
+             
+             setUrl('');
+             setLoading(false);
+             return;
+
+        } catch (err: unknown) {
+             const message = err instanceof Error ? err.message : "Error checking URL";
+             setError(message);
+             setLoading(false);
+             return;
+        }
+    }
+
+    // Default behavior for other platforms (or if logic flow falls through)
     // Add to queue
     const newItem: QueueItem = {
       id: Date.now().toString(),
@@ -131,14 +251,47 @@ export default function SocialToolsClient() {
     };
 
     setQueue(prev => [...prev, newItem]);
-    
-    // Clear input
-    setUrl('');
+    setUrl(''); // Clear input
+  };
+  
+  const confirmSelectionDownload = () => {
+      // Create a queue item for EACH selected index
+      const newItems: QueueItem[] = Array.from(selectedIndices).map(idx => {
+          // Find original item to get download_url
+          const originalItem = selectionItems.find(i => i.index === idx);
+          const isVideo = originalItem?.is_video;
+          // IMPORTANT: Fallback to 'url' (display_url) for photos if download_url is missing. 
+          // For videos, 'url' is just a thumbnail, so we really need download_url or we fallback to full process.
+          const directUrl = (originalItem?.download_url) || (isVideo ? undefined : originalItem?.url);
+          
+          return {
+            id: Date.now().toString() + '-' + idx,
+            url, // Same URL
+            platform: 'instagram',
+            format: isVideo ? 'video' : 'photo', // Auto-detect format from item type
+            quality,
+            status: 'pending',
+            carouselIndex: idx,
+            directDownloadUrl: directUrl // PASS THE URL!
+        };
+      });
+      
+      setQueue(prev => [...prev, ...newItems]);
+      setShowSelectionModal(false);
+      setSelectionItems([]);
+      setUrl('');
+      setLoading(false);
   };
 
   const removeFromQueue = (id: string) => {
     setQueue(prev => prev.filter(item => item.id !== id));
   };
+
+  const clearQueue = () => {
+      // Keep only items that are currently downloading to prevent state issues
+      setQueue(prev => prev.filter(item => item.status === 'downloading'));
+  };
+
 
   // Queue Processing Effect
   useEffect(() => {
@@ -167,8 +320,9 @@ export default function SocialToolsClient() {
 
             // Small delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (err: any) {
-            setQueue(prev => prev.map(q => q.id === nextItem.id ? { ...q, status: 'error', error: err.message } : q));
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Download failed";
+            setQueue(prev => prev.map(q => q.id === nextItem.id ? { ...q, status: 'error', error: message } : q));
         } finally {
             setIsProcessingQueue(false); 
             // The state update above (completed/error) will trigger this effect again,
@@ -304,75 +458,53 @@ export default function SocialToolsClient() {
             marginBottom: '1.5rem', 
             position: 'relative', 
             overflow: 'hidden',
-            opacity: !url ? 0.5 : 1
+            opacity: !url || loading ? 0.7 : 1, // Dim if disabled
+            cursor: !url || loading ? 'not-allowed' : 'pointer'
           }}
         >
-          {/* Dynamic Label based on state */}
-          {isProcessingQueue ? 'Add to Queue' : 'Download'}
+          {loading ? (
+             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px', borderColor: '#fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <span>Fetching Info...</span>
+             </div>
+          ) : (
+             isProcessingQueue ? 'Add to Queue' : 'Download'
+          )}
         </button>
 
         {/* Queue Section */}
-        {(queue.length > 0 || isProcessingQueue) && (
-          <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-                    Downloads
-                    {isProcessingQueue && <span style={{ marginLeft: '10px', fontSize: '0.8rem', opacity: 0.7 }}>(Processing...)</span>}
-                </h3>
-             </div>
-
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {queue.map((item) => (
-                  <div key={item.id} style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '0.75rem',
-                      background: 'var(--background)',
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
-                      border: '1px solid var(--border)' 
-                  }}>
-                      <div style={{ fontSize: '1.2rem' }}>
-                          {platforms.find(p => p.id === item.platform)?.icon}
-                      </div>
-                      <div style={{ flex: 1, overflow: 'hidden' }}>
-                          <div style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.url}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                             {item.format.toUpperCase()} • {item.quality}
-                          </div>
-                      </div>
-                      <div>
-                          {item.status === 'pending' && <span style={{ padding: '0.2rem 0.5rem', background: '#e0e0e0', color: '#555', borderRadius: '4px', fontSize: '0.75rem' }}>Pending</span>}
-                          {item.status === 'downloading' && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                <div className="spinner" style={{ width: '12px', height: '12px', borderWidth: '2px', borderColor: '#3b82f6', borderTopColor: 'transparent' }}></div>
-                                Downloading...
-                              </div>
-                          )}
-                          {item.status === 'completed' && <span style={{ padding: '0.2rem 0.5rem', background: '#22c55e', color: '#fff', borderRadius: '4px', fontSize: '0.75rem' }}>Done</span>}
-                          {item.status === 'error' && <span style={{ padding: '0.2rem 0.5rem', background: '#eff6ff', color: '#ef4444', borderRadius: '4px', fontSize: '0.75rem' }}>Error</span>}
-                      </div>
-                      
-                      {/* Only allow deleting pending items */}
-                      {item.status === 'pending' && (
-                          <button 
-                            onClick={() => removeFromQueue(item.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: '1.2rem', padding: '0 0.5rem' }}
-                            title="Remove from queue"
-                          >×</button>
-                      )}
-                  </div>
-                ))}
-             </div>
-          </div>
-        )}
+        <DownloadQueueList 
+          queue={queue} 
+          isProcessingQueue={isProcessingQueue} 
+          onClearQueue={clearQueue} 
+          onRemoveItem={removeFromQueue} 
+          platforms={platforms}
+        />
 
         <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', opacity: 0.6, fontSize: '0.85rem', textAlign: 'center' }}>
           <p>⚠️ Disclaimer: Download only content you own or have permission to use.</p>
         </div>
       </div>
+      
+      {/* Carousel Selection Modal */}
+      {showSelectionModal && (
+        <CarouselSelectionModal 
+           items={selectionItems}
+           selectedIndices={selectedIndices}
+           onToggleSelect={(index) => {
+                const newSelected = new Set(selectedIndices);
+                if (newSelected.has(index)) newSelected.delete(index);
+                else newSelected.add(index);
+                setSelectedIndices(newSelected);
+           }}
+           onCancel={() => { setShowSelectionModal(false); setSelectionItems([]); setLoading(false); }}
+           onDownload={confirmSelectionDownload}
+        />
+      )}
+
+
+
+
     </div>
   );
 }

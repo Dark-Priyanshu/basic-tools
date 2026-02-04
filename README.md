@@ -100,17 +100,25 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 #### Social Media Downloader
 
-- **Multi-Platform Support** - Instagram (Videos/Reels/Photos), YouTube,
+- **Multi-Platform Support** - Instagram (Reels/Photos/Carousels), YouTube,
   Facebook, Spotify
-- **Queue System** - Queue multiple downloads and process them sequentially
+- **Advanced Queue System** -
+  - Add multiple items to queue
+  - Auto-start sequential downloading
+  - "Clear Queue" functionality
+  - Remove individual pending items
+- **Instagram "Save What You See"** - Instant photo/carousel downloads using
+  browser cache (Blob Save) logic - zero server processing for photos.
+- **Smart Proxy Streaming** - Videos are streamed directly via a backend proxy
+  to bypass frequent CORS issues.
 - **Format Options** - Video (MP4), Audio (MP3), and Photos (JPG for Instagram)
 - **Quality Control** - 1080p+, High Bitrate Audio
 - **Zero Temp Files** - Advanced streaming architecture ensuring NO temporary
-  files are created on the server/disk
+  files are created on the server/disk.
 - **Local Processing** - A companion Python service handles downloads locally on
-  your machine
+  your machine.
 - **Privacy Focused** - No third-party servers; files stream directly to your
-  browser
+  browser.
 
 ### Developer Tools
 

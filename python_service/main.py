@@ -45,10 +45,31 @@ class DownloadRequest(BaseModel):
     url: str
     format_type: str = "video" # video or audio
     quality: str = "best"      # best, 1080p, 720p, etc.
+    carousel_index: int = -1   # -1 for auto-detect/manifest, >=0 for specific item
 
 @app.get("/")
 def read_root():
     return {"message": "Social Tools Downloader API is running"}
+
+@app.get("/proxy_image")
+def proxy_image(url: str):
+    """
+    Proxies an image URL to bypass CORS/Referrer policies.
+    """
+    try:
+        if not url:
+            raise HTTPException(status_code=400, detail="Missing URL")
+            
+        def iter_content():
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=8192):
+                    yield chunk
+        
+        return StreamingResponse(iter_content(), media_type="image/jpeg")
+    except Exception as e:
+        print(f"Proxy Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch image")
 
 @app.post("/download/{platform}")
 def download_media(platform: str, request: DownloadRequest):
@@ -58,11 +79,10 @@ def download_media(platform: str, request: DownloadRequest):
 
     print(f"DEBUG: Processing {platform} download for {request.url}")
 
-    # --- INSTAGRAM PHOTO HANDLING ---
+    # --- INSTAGRAM PHOTO/CAROUSEL HANDLING ---
     if platform == "instagram":
         try:
             # 1. Extract Shortcode
-            # URLs look like: https://www.instagram.com/p/ShortCode/ orreel/ShortCode/
             shortcode = None
             if "/p/" in request.url:
                 shortcode = request.url.split("/p/")[1].split("/")[0]
@@ -76,20 +96,84 @@ def download_media(platform: str, request: DownloadRequest):
                 try:
                     post = instaloader.Post.from_shortcode(L.context, shortcode)
                     
-                    # Logic: If it is NOT a video, treat as Photo
-                    if not post.is_video:
-                        print("DEBUG: Detected Instagram Photo")
+                    # --- CAROUSEL DETECTION ---
+                    if post.typename == 'GraphSidecar':
+                        # Case A: Discovery (Client asking "what is inside?")
+                        if request.carousel_index == -1:
+                            print("DEBUG: Detected Carousel - Returning Manifest")
+                            items = []
+                            for i, node in enumerate(post.get_sidecar_nodes()):
+                                items.append({
+                                    "index": i,
+                                    "is_video": node.is_video,
+                                    "url": node.display_url, # Thumbnail/Preview
+                                    "type": "video" if node.is_video else "photo"
+                                })
+                            
+                            from fastapi.responses import JSONResponse
+                            return JSONResponse(content={"type": "carousel", "items": items})
+                        
+                        # Case B: Download Specific Item
+                        else:
+                            print(f"DEBUG: Downloading Carousel Item Index: {request.carousel_index}")
+                            nodes = list(post.get_sidecar_nodes())
+                            if request.carousel_index < 0 or request.carousel_index >= len(nodes):
+                                raise HTTPException(status_code=400, detail="Invalid carousel index")
+                            
+                            target_node = nodes[request.carousel_index]
+                            
+                            # Stream Logic for Target Node
+                            if target_node.is_video:
+                                # For video nodes in carousel, instaloader gives video_url
+                                video_url = target_node.video_url
+                                final_filename_display = f"Video by {post.owner_username} ({request.carousel_index + 1}).mp4"
+                                
+                                # Stream using Requests (simpler than yt-dlp for direct URL)
+                                # OR pass to yt-dlp if URL is complex. Usually direct URL works for Sidecar.
+                                def iter_video():
+                                    with requests.get(video_url, stream=True) as r:
+                                        r.raise_for_status()
+                                        for chunk in r.iter_content(chunk_size=1024*1024):
+                                            yield chunk
+
+                                from urllib.parse import quote
+                                filename_header = f"attachment; filename*=utf-8''{quote(final_filename_display)}"
+                                return StreamingResponse(
+                                    iter_video(),
+                                    media_type="video/mp4",
+                                    headers={"Content-Disposition": filename_header}
+                                )
+                            else:
+                                # Photo Node
+                                image_url = target_node.display_url
+                                filename_display = f"Photo by {post.owner_username} ({request.carousel_index + 1}).jpg"
+                                
+                                def iter_image():
+                                    with requests.get(image_url, stream=True) as r:
+                                        r.raise_for_status()
+                                        for chunk in r.iter_content(chunk_size=8192):
+                                            yield chunk
+                                
+                                from urllib.parse import quote
+                                filename_header = f"attachment; filename*=utf-8''{quote(final_filename_display)}"
+                                return StreamingResponse(
+                                    iter_image(),
+                                    media_type="image/jpeg",
+                                    headers={"Content-Disposition": filename_header}
+                                )
+
+                    # --- SINGLE POST (Photo) ---
+                    elif not post.is_video:
+                        print("DEBUG: Detected Single Instagram Photo")
                         image_url = post.url
                         filename_display = f"Photo by {post.owner_username}.jpg"
                         
-                        # Stream the image directly
                         def iter_image():
                             with requests.get(image_url, stream=True) as r:
                                 r.raise_for_status()
                                 for chunk in r.iter_content(chunk_size=8192): 
                                     yield chunk
                         
-                        # Encode filename
                         from urllib.parse import quote
                         filename_header = f"attachment; filename*=utf-8''{quote(filename_display)}"
                         
@@ -102,9 +186,8 @@ def download_media(platform: str, request: DownloadRequest):
                         print("DEBUG: Detected Instagram Video/Reel - Falling back to yt-dlp")
                         # Fallback to yt-dlp code below for videos
                 except Exception as e:
-                    print(f"WARNING: Instaloader failed (might be login required or private): {e}")
-                    # If Instaloader fails, fallback to yt-dlp (which might work for some reels) 
-                    pass
+                    print(f"WARNING: Instaloader failed: {e}")
+                    pass # Fallback
         except Exception as e:
              print(f"Error in Instagram logic: {e}")
 
